@@ -1,0 +1,6 @@
+# Core dependencies
+numpy>=1.20.0
+matplotlib>=3.5.0
+rerun-sdk>=0.10.0
+
+
