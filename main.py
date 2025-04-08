@@ -1,33 +1,34 @@
 from environment import SpaceEnv
 from sarsa import SarsaAgent
-from visualization import Visualizer
+from visualization import RerunLogger
 
 
 def main():
-    # Initialize environment and visualization
+    # Initialize environment
     env = SpaceEnv()
-    vis = Visualizer(env)
 
-    # Create SARSA agent with optimal parameters
+    # Initialize RerunLogger
+    logger = RerunLogger(env, "sarsa_satellite_collision_avoidance", log_frequency=1000)
+
+    # Create SARSA agent with optimal parameters and pass the logger
     agent = SarsaAgent(
         env=env,
-        alpha=0.1,           # Learning rate
-        gamma=0.99,          # Discount factor
-        epsilon=1.0,         # Initial exploration rate
-        epsilon_decay=0.995, # Epsilon decay rate
-        min_epsilon=0.01     # Minimum exploration rate
+        alpha=0.1,  # Learning rate
+        gamma=0.99,  # Discount factor
+        epsilon=0.5,  # Initial exploration rate
+        epsilon_decay=0.995,  # Epsilon decay rate
+        min_epsilon=0.01,  # Minimum exploration rate
+        logger=logger,  # Pass the logger to the agent
     )
 
-    # Train agent
+    # Train agent (the agent will use the logger internally)
     print("Starting SARSA training...")
-    num_episodes = 100
+    num_episodes = 10000
     agent.train(num_episodes)
 
-    # Generate reward curve visualization
-    vis.plot_training_results(agent.episode_rewards)
+    # No need for visualization code here - the agent handles it internally now
+    print("\nProcess complete. View the visualization in the Rerun viewer.")
 
-    # Run and animate a final test episode with the trained agent
-    vis.run_visualization_episode(agent)
 
 if __name__ == "__main__":
     main()
