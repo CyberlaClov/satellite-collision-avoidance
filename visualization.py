@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 
 import numpy as np
@@ -7,19 +8,51 @@ import rerun as rr
 class RerunLogger:
     """Minimal working Rerun logger for satellite collision avoidance."""
 
-    def __init__(self, env, experiment_name=None):
-        """Initialize the Rerun logger."""
+    def __init__(
+        self,
+        env,
+        experiment_name=None,
+        log_frequency=50,
+        logging_mode="viewer",
+        log_dir="rerun_logs",
+    ):
+        """Initialize the Rerun logger.
+
+        Args:
+            env: The environment being logged
+            experiment_name: Optional name for the experiment
+            log_frequency: How often to log full episodes
+            logging_mode: One of "viewer", "file", or "both"
+            log_dir: Directory to store log files when file logging is enabled
+        """
         self.env = env
+
+        # Create a unique timestamp for logging
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
         # Create a unique experiment name with timestamp if none provided
         if experiment_name is None:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             experiment_name = f"satellite_collision_avoidance_{timestamp}"
 
         self.experiment_name = experiment_name
+        self.log_frequency = log_frequency
+        self.logging_mode = logging_mode
 
-        # Initialize Rerun with spawning the viewer
-        rr.init(self.experiment_name, spawn=True)
+        # Initialize Rerun
+        rr.init(self.experiment_name)
+
+        # Handle different logging modes
+        if logging_mode == "viewer":
+            rr.spawn()
+
+        if logging_mode == "file":
+            # Create log directory if it doesn't exist
+            os.makedirs(log_dir, exist_ok=True)
+
+            # Create log file with timestamp
+            log_filename = os.path.join(log_dir, f"satellite_log_{timestamp}.rrd")
+            rr.save(log_filename)
+            self.log_filename = log_filename
 
         # Track episode counter for periodic full episode logging
         self.episode_counter = 0
@@ -28,7 +61,7 @@ class RerunLogger:
     def start_episode(self):
         """Start tracking a new episode"""
         self.episode_counter += 1
-        self.logging_full_episode = self.episode_counter % 15 == 0
+        self.logging_full_episode = self.episode_counter % self.log_frequency == 0
 
         if self.logging_full_episode:
             # Reset past positions for new episode
@@ -53,7 +86,7 @@ class RerunLogger:
         # Log the orbit line
         rr.log(
             "world/orbit",
-            rr.LineStrips2D(segments, radii=0.01, colors=[0, 255, 0, 128]),
+            rr.LineStrips2D(segments, radii=0.03, colors=[0, 255, 0, 128]),
         )
 
     def log_step(self, action, reward, info=None):
@@ -80,8 +113,8 @@ class RerunLogger:
         rr.log(
             "world/satellite",
             rr.Points2D(
-                [satellite_pos], radii=0.05, colors=[[0, 0, 255, 255]]
-            ),  # Increased from 0.02 to 0.05
+                [satellite_pos], radii=0.15, colors=[[0, 100, 255, 255]]
+            ),  # Increased from 0.05 to 0.15
         )
 
         # Store position for trajectory
@@ -93,7 +126,7 @@ class RerunLogger:
         # Log all positions from this episode as Points2D
         rr.log(
             "world/trajectory",
-            rr.Points2D(self.past_positions, radii=0.015, colors=[[0, 0, 255, 128]]),
+            rr.Points2D(self.past_positions, radii=0.03, colors=[[0, 100, 255, 128]]),
         )
 
     def _log_debris(self):
@@ -104,8 +137,8 @@ class RerunLogger:
             rr.log(
                 "world/debris",
                 rr.Points2D(
-                    debris_positions, radii=0.05, colors=[[255, 0, 0, 255]]
-                ),  # Increased from 0.02 to 0.05
+                    debris_positions, radii=0.075, colors=[[255, 50, 0, 255]]
+                ),  # Increased from 0.05 to 0.15
             )
 
     def _log_metrics(self, reward):
@@ -128,16 +161,3 @@ class RerunLogger:
 
         if epsilon is not None:
             rr.log("training/epsilon", rr.Scalar(epsilon))
-
-    def log_training_progress(self, episode_rewards, episode_lengths, epsilon=None):
-        """Log overall training progress metrics."""
-        # Only log if we have at least one episode
-        if len(episode_rewards) > 0:
-            # Log the most recent reward
-            latest_reward = episode_rewards[-1]
-            rr.set_time_sequence("full_training", len(episode_rewards))
-            rr.log("training/latest_reward", rr.Scalar(latest_reward))
-
-            # Log epsilon if provided
-            if epsilon is not None:
-                rr.log("training/epsilon", rr.Scalar(epsilon))
