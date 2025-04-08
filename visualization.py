@@ -45,7 +45,7 @@ class RerunLogger:
         if logging_mode == "viewer":
             rr.spawn()
 
-        if logging_mode == "file":
+        elif logging_mode == "file":
             # Create log directory if it doesn't exist
             os.makedirs(log_dir, exist_ok=True)
 
@@ -160,6 +160,12 @@ class RerunLogger:
 
         # Log y deviation
         rr.log("metrics/y_deviation", rr.Scalar(abs(self.env.pos_y)))
+
+        # Log survival probability
+        rr.log(
+            "metrics/survival_probability",
+            rr.Scalar(self.env.get_survival_probability()),
+        )
 
     def log_episode_summary(self, total_reward, steps, epsilon=None, info=None):
         """Log summary information at the end of an episode."""
