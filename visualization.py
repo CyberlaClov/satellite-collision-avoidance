@@ -100,6 +100,8 @@ class RerunLogger:
         # Log the satellite position
         self._log_satellite()
 
+        self._log_action(action)
+
         # Log debris
         self._log_debris()
 
@@ -128,6 +130,13 @@ class RerunLogger:
             "world/trajectory",
             rr.Points2D(self.past_positions, radii=0.03, colors=[[0, 100, 255, 128]]),
         )
+
+    def _log_action(self, action):
+
+        current_pos = np.array([self.env.pos_x, self.env.pos_y])
+        action_vec = np.array([0, action])
+
+        rr.log("world/action", rr.Arrows2D(origins=current_pos, vectors=action_vec))
 
     def _log_debris(self):
         """Log debris objects"""
