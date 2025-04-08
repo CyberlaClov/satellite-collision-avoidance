@@ -4,13 +4,16 @@ import numpy as np
 class SarsaAgent:
     """SARSA (State-Action-Reward-State-Action) agent for reinforcement learning"""
 
-    def __init__(self,
-                 env,
-                 alpha=0.1,      # Learning rate
-                 gamma=0.9,      # Discount factor
-                 epsilon=0.3,    # Initial exploration rate
-                 epsilon_decay=0.9999,  # Epsilon decay rate
-                 min_epsilon=0.01):     # Minimum exploration rate
+    def __init__(
+        self,
+        env,
+        alpha=0.1,  # Learning rate
+        gamma=0.9,  # Discount factor
+        epsilon=0.3,  # Initial exploration rate
+        epsilon_decay=0.9999,  # Epsilon decay rate
+        min_epsilon=0.01,  # Minimum exploration rate
+        logger=None,
+    ):  # Optional RerunLogger
 
         self.env = env
         self.alpha = alpha
@@ -18,23 +21,31 @@ class SarsaAgent:
         self.epsilon = epsilon
         self.epsilon_decay = epsilon_decay
         self.min_epsilon = min_epsilon
+        self.logger = logger
 
         # Get all possible actions
         self.actions = env.action_space
         self.num_actions = len(self.actions)
 
         # Define state discretization parameters (which features to use and how many bins)
-        self.state_features = [1, 3, 5, 6, 10, 11]  # pos_y, vel_y, debris1 relative x/y, debris2 relative x/y
-        self.bins = [20, 10, 10, 10, 10, 10]  # Number of bins for each feature
+        self.state_features = [
+            1,
+            3,
+            5,
+            6,
+            10,
+            11,
+        ]  # pos_y, vel_y, debris1 relative x/y, debris2 relative x/y
+        self.bins = [10, 5, 5, 5, 5, 5]  # Number of bins for each feature
 
         # Define observation bounds for normalization
         self.obs_bounds = {
-            1: (-3.0, 3.0),       # pos_y range
-            3: (-5.0, 5.0),       # vel_y range
-            5: (0.0, 10.0),       # relative_pos_x debris 1
-            6: (-3.0, 3.0),       # relative_pos_y debris 1
-            10: (0.0, 10.0),      # relative_pos_x debris 2
-            11: (-3.0, 3.0),      # relative_pos_y debris 2
+            1: (-10.0, 10.0),  # pos_y range
+            3: (-5.0, 5.0),  # vel_y range
+            5: (0.0, 5.0),  # relative_pos_x debris 1
+            6: (-3.0, 3.0),  # relative_pos_y debris 1
+            10: (0.0, 5.0),  # relative_pos_x debris 2
+            11: (-3.0, 3.0),  # relative_pos_y debris 2
         }
 
         # Initialize Q-table with small random values (sparse representation using dictionary)
@@ -79,8 +90,12 @@ class SarsaAgent:
                 self.q_table[state] = np.zeros(self.num_actions)
 
             # Find action with the highest Q-value
-            action_idx = np.argmax([self.q_table[state][np.where(self.actions == a)[0][0]]
-                                  for a in self.actions])
+            action_idx = np.argmax(
+                [
+                    self.q_table[state][np.where(self.actions == a)[0][0]]
+                    for a in self.actions
+                ]
+            )
             return self.actions[action_idx]
 
     def update_q_value(self, state, action, reward, next_state, next_action):
@@ -104,7 +119,9 @@ class SarsaAgent:
         next_q_value = self.q_table[next_state][next_action_idx]
 
         # SARSA update rule: Q(s,a) = Q(s,a) + α * [r + γ * Q(s',a') - Q(s,a)]
-        new_q_value = q_value + self.alpha * (reward + self.gamma * next_q_value - q_value)
+        new_q_value = q_value + self.alpha * (
+            reward + self.gamma * next_q_value - q_value
+        )
 
         # Update Q-table
         self.q_table[state][action_idx] = new_q_value
@@ -114,8 +131,12 @@ class SarsaAgent:
         self.epsilon = max(self.min_epsilon, self.epsilon * self.epsilon_decay)
 
     def train(self, num_episodes):
-        """Train the agent using SARSA algorithm"""
+        """Train the agent using SARSA algorithm with optional logging"""
         for episode in range(num_episodes):
+            # Start logging this episode if logger is available
+            if self.logger:
+                self.logger.start_episode()
+
             # Reset environment and get initial state
             observation = self.env.reset()
             state = self.discretize_state(observation)
@@ -130,6 +151,11 @@ class SarsaAgent:
             while not done:
                 # Take step in environment
                 observation, reward, done, info = self.env.step(action)
+
+                # Log step if logger is available
+                if self.logger:
+                    self.logger.log_step(action, reward, info)
+
                 next_state = self.discretize_state(observation)
 
                 # Choose next action
@@ -150,12 +176,18 @@ class SarsaAgent:
             self.episode_rewards.append(total_reward)
             self.episode_lengths.append(steps)
 
+            # Log episode summary if logger is available
+            if self.logger:
+                self.logger.log_episode_summary(total_reward, steps, self.epsilon, info)
+
             # Decay exploration rate
             self.decay_epsilon()
 
             # Print episode results
-            print(f"Episode {episode}/{num_episodes}, "
-                  f"Reward: {total_reward:.2f}, "
-                  f"Steps: {steps}, "
-                  f"Epsilon: {self.epsilon:.4f}, "
-                  f"Q-table size: {len(self.q_table)}")
+            print(
+                f"Episode {episode+1}/{num_episodes}, "
+                f"Reward: {total_reward:.2f}, "
+                f"Steps: {steps}, "
+                f"Epsilon: {self.epsilon:.4f}, "
+                f"Q-table size: {len(self.q_table)}"
+            )
