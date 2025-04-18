@@ -279,13 +279,13 @@ class SpaceEnv:
         if done:
             if done_reason == "max_steps":
                 # Positive reward for reaching max episode length
-                reward += 30
+                reward += 10
             elif done_reason == "fuel_depletion":
                 # Negative reward for running out of fuel
-                reward -= 30.0
+                reward -= 10.0
             elif done_reason == "collision":
                 # More punishing negative reward for collision
-                reward -= 10.0
+                reward -= 30.0
 
         # Return step information
         info = {
@@ -296,7 +296,6 @@ class SpaceEnv:
             "steps": self.steps,
             "num_debris": len(self.debris_list),
             "done_reason": done_reason if done else "",
-            "survival_probability": self.get_survival_probability(),
         }
 
         return observation, reward, done, info
