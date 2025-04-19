@@ -178,7 +178,7 @@ The project uses the [Rerun](https://www.rerun.io/) visualization library to cre
 
 ```bash
 # Clone this repository
-git clone https://github.com/yourusername/satellite-collision-avoidance.git
+git clone https://github.com/CyberLaClov/satellite-collision-avoidance.git
 
 # Navigate to project directory
 cd satellite-collision-avoidance
@@ -188,9 +188,6 @@ pip install -r requirements.txt
 
 # Run the discrete SARSA implementation
 python main.py
-
-# Run the semi-gradient SARSA implementation
-python main.py agent_type="semigradient"
 ```
 
 ## Project Files
@@ -211,16 +208,9 @@ python main.py agent_type="semigradient"
 - Develop multi-agent approaches for collaborative collision avoidance
 
 ## Academic Context
+This project was done as an evaluation for Principles and Applications of Reinforcement Learning course in CentraleSupélec, under the supervision of Adam Abdin
 
-This project demonstrates the application of reinforcement learning to a realistic space operations problem with continuous state space and multiple competing objectives. The progression from MDP design to discrete methods and finally to function approximation follows educational reinforcement learning curriculum design.
+## Authors
 
-The implementation illustrates several key RL concepts:
-- The impact of state representation and discretization
-- The balance between exploration and exploitation
-- The challenges of credit assignment with delayed rewards
-- The tradeoffs between tabular methods and function approximation
-
-## Acknowledgments
-
-- This project is inspired by real-world satellite collision avoidance challenges
-- Visualization powered by [Rerun](https://www.rerun.io/)
+- Clovis Piedallu
+- Jérémy Mathet
