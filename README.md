@@ -48,7 +48,7 @@ The environment implements physics-based motion with:
 The reward function has two components:
 
 1. **Continuous Rewards** (per time step):
-   - Operational profit: `r = p0 * (1 - |pos_y| / max_deviation)`
+   - Operational profit: $r = p0 * (1 - |pos_y| / max_deviation)$
    - Higher rewards when the satellite stays close to its planned orbit (y = 0)
    - Maximum reward (p0 = 5.0) when pos_y = 0
    - Reward decreases linearly as the satellite deviates from orbit
@@ -117,21 +117,8 @@ Learning curve showing episode rewards over time:
 #### Policy Demonstration
 A video demonstration of the trained agent at episode 7000 can be viewed below:
 
-[Click here to view the satellite avoidance demonstration video](satellite_demo_episode_7000.mp4)
+![Episode 7000](demo_satellite.gif)
 
-To include a video in your README when hosting on platforms like GitHub:
-1. Save your episode 7000 video in the project directory as `satellite_demo_episode_7000.mp4`
-2. For GitHub, you can use the following Markdown:
-   ```markdown
-   https://github.com/yourusername/satellite-collision-avoidance/assets/yourusernumber/satellite_demo_episode_7000.mp4
-   ```
-   (You'll need to upload the video as an issue attachment first to get a URL)
-
-3. Alternatively, you can use an HTML video tag directly in the README:
-   ```html
-   <video src="satellite_demo_episode_7000.mp4" controls="controls" style="max-width: 730px;">
-   </video>
-   ```
 
 ### Task 2: Semi-Gradient SARSA with Function Approximation
 
