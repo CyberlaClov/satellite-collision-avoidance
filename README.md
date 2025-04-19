@@ -73,7 +73,7 @@ For Task 1, we implemented a tabular SARSA algorithm using state discretization 
 #### SARSA Algorithm
 SARSA (State-Action-Reward-State-Action) is an on-policy reinforcement learning algorithm that uses the following update rule:
 
-Q(s, a) ← Q(s, a) + α[r + γQ(s', a') - Q(s, a)]
+$$Q(s, a) ← Q(s, a) + α[r + γQ(s', a') - Q(s, a)]$$
 
 Where:
 - Q(s, a) is the value of taking action a in state s
